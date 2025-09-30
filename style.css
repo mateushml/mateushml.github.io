@@ -2,6 +2,7 @@
 :root {
     --primary-color: #005a9c;
     --danger-color: #dc3545;
+    --success-color: #28a745;
     --light-gray: #f4f7f6;
     --border-color: #dee2e6;
 }
@@ -14,16 +15,8 @@ body {
     padding: 20px;
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-header h1 {
-    text-align: center;
-    color: var(--primary-color);
-    margin-bottom: 25px;
-}
+.container { max-width: 800px; margin: 0 auto; }
+header h1 { text-align: center; color: var(--primary-color); margin-bottom: 25px; }
 
 .card {
     background-color: #ffffff;
@@ -34,11 +27,27 @@ header h1 {
 }
 
 /* Controles, Calculadora e Feriados */
-.controls { display: flex; gap: 20px; }
+.controls { display: flex; gap: 15px; align-items: flex-end; }
+.controls .input-group { flex-grow: 1; }
+#today-btn { padding: 10px 15px; height: 44px; flex-shrink: 0; background-color: #6c757d; }
+
 .holiday-manager { display: flex; gap: 10px; margin-bottom: 15px; }
 #holidays-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .holiday-item { background: #e9ecef; padding: 5px 10px; border-radius: 4px; font-size: 0.9em; display: flex; align-items: center; gap: 8px; }
 .remove-holiday-btn { cursor: pointer; color: var(--danger-color); font-weight: bold; }
+
+/* Relatório Mensal */
+.report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.report-item span { display: block; font-size: 0.9em; color: #6c757d; }
+.report-item strong { display: block; font-size: 1.4em; }
+#export-csv-btn { width: 100%; background-color: var(--success-color); }
+
 
 /* Grade do Calendário */
 .calendar-header { display: grid; grid-template-columns: 80px 1fr 1fr; font-weight: bold; padding: 10px; border-bottom: 2px solid var(--primary-color); margin-bottom: 10px; }
@@ -63,15 +72,7 @@ button { background-color: var(--primary-color); color: white; cursor: pointer; 
 
 .time-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 15px; }
 
-/* Caixa de resultado da calculadora */
-.result-box {
-    margin-top: 15px;
-    padding: 15px;
-    background-color: #e2f0ff;
-    border-left: 5px solid var(--primary-color);
-    border-radius: 4px;
-    text-align: center;
-}
+.result-box { margin-top: 15px; padding: 15px; background-color: #e2f0ff; border-left: 5px solid var(--primary-color); border-radius: 4px; text-align: center; }
 .result-box p { margin: 5px 0; }
 
 .hidden { display: none; }

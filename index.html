@@ -8,7 +8,7 @@
 
     <meta name="theme-color" content="#005a9c"/>
     <link rel="manifest" href="manifest.json">
-    </head>
+</head>
 <body>
     <div class="container">
         <header>
@@ -25,23 +25,22 @@
                     <label for="year-select">Ano</label>
                     <input type="number" id="year-select">
                 </div>
+                <button id="today-btn" title="Ir para o mês atual">Hoje</button>
+            </section>
+            
+            <section class="card">
+                <h2>Relatório do Mês</h2>
+                <div id="report-grid" class="report-grid">
+                    </div>
+                <button id="export-csv-btn">Exportar para CSV (Excel)</button>
             </section>
 
             <section class="card">
                 <h2>Calculadora de Saída</h2>
                 <div class="time-inputs">
-                    <div class="input-group">
-                        <label>Entrada 1 (hoje)</label>
-                        <input type="time" id="calc-time1">
-                    </div>
-                    <div class="input-group">
-                        <label>Saída 1 (hoje)</label>
-                        <input type="time" id="calc-time2">
-                    </div>
-                    <div class="input-group">
-                        <label>Entrada 2 (hoje)</label>
-                        <input type="time" id="calc-time3">
-                    </div>
+                    <div class="input-group"><label>Entrada 1 (hoje)</label><input type="time" id="calc-time1"></div>
+                    <div class="input-group"><label>Saída 1 (hoje)</label><input type="time" id="calc-time2"></div>
+                    <div class="input-group"><label>Entrada 2 (hoje)</label><input type="time" id="calc-time3"></div>
                 </div>
                 <button id="calculate-exit-btn">Calcular Horários de Saída</button>
                 <div id="exit-result" class="result-box hidden"></div>
@@ -57,13 +56,8 @@
             </section>
             
             <section class="calendar-container">
-                <div class="calendar-header">
-                    <div>Dia</div>
-                    <div>Horários</div>
-                    <div>Saldo</div>
-                </div>
-                <div id="calendar-grid">
-                    </div>
+                <div class="calendar-header"><div>Dia</div><div>Horários</div><div>Saldo</div></div>
+                <div id="calendar-grid"></div>
             </section>
         </main>
     </div>
@@ -88,17 +82,12 @@
     </div>
 
     <script src="script.js"></script>
-
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js').then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
+                navigator.serviceWorker.register('/service-worker.js').then(reg => console.log('ServiceWorker registered'), err => console.log('ServiceWorker registration failed: ', err));
             });
         }
     </script>
-    </body>
+</body>
 </html>
