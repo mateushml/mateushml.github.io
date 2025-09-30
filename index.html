@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Ponto Mensal</title>
     <link rel="stylesheet" href="style.css">
-</head>
+
+    <meta name="theme-color" content="#005a9c"/>
+    <link rel="manifest" href="manifest.json">
+    </head>
 <body>
     <div class="container">
         <header>
@@ -85,5 +88,17 @@
     </div>
 
     <script src="script.js"></script>
-</body>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+    </body>
 </html>
