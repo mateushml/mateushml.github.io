@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hours = Math.floor(totalMinutes / 60) % 24;
         const minutes = Math.round(totalMinutes % 60);
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-    }
+    };
     
     // --- FUNÇÕES PRINCIPAIS ---
     const saveData = () => {
@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const generateCalendar = (year, month) => {
-        // ... (código da generateCalendar, sem alterações)
         calendarGrid.innerHTML = '';
         const date = new Date(year, month, 1);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -172,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const balance = totalWork - WORKDAY_MINUTES;
                 row += `Trabalhado,${record.times.join(',')},${formatMinutes(totalWork, false)},${formatMinutes(balance)}\n`;
             } else {
-                row += "Não preenchido,,,,,,,\n";
+                row += "Nao preenchido,,,,,,,\n";
             }
             csvContent += row;
         }
@@ -185,14 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         document.body.removeChild(link);
     };
-
-    // --- CÓDIGO RESTANTE (MODAL, FERIADOS, CALCULADORA, ETC) SEM ALTERAÇÕES SIGNIFICATIVAS ---
-    const openModal = (day, record) => { /* ... */ };
-    const closeModal = () => { /* ... */ };
-    const renderHolidays = (year, month) => { /* ... */ };
-    const calculateCurrentBalance = (year, month) => { /* ... */ };
-
-    // ... (cole aqui as funções openModal, closeModal, renderHolidays, calculateCurrentBalance da versão anterior)
+    
     const openModal = (day, record) => {
         currentDayToEdit = day;
         modalTitle.textContent = `Registrar Horários - Dia ${day}`;
@@ -309,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
             exportToCSV(parseInt(yearSelect.value), parseInt(monthSelect.value));
         });
 
-        calculateExitBtn.addEventListener('click', () => { /* ... */ }); // Sem alterações aqui
         calculateExitBtn.addEventListener('click', () => {
             const t1 = document.getElementById('calc-time1').value;
             const t2 = document.getElementById('calc-time2').value;
