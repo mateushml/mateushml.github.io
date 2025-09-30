@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Ponto Mensal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Controle de Ponto Mensal</h1>
+        </header>
+
+        <main>
+            <section class="card controls">
+                <div class="input-group">
+                    <label for="month-select">Mês</label>
+                    <select id="month-select"></select>
+                </div>
+                <div class="input-group">
+                    <label for="year-select">Ano</label>
+                    <input type="number" id="year-select">
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Calculadora de Saída</h2>
+                <div class="time-inputs">
+                    <div class="input-group">
+                        <label>Entrada 1 (hoje)</label>
+                        <input type="time" id="calc-time1">
+                    </div>
+                    <div class="input-group">
+                        <label>Saída 1 (hoje)</label>
+                        <input type="time" id="calc-time2">
+                    </div>
+                    <div class="input-group">
+                        <label>Entrada 2 (hoje)</label>
+                        <input type="time" id="calc-time3">
+                    </div>
+                </div>
+                <button id="calculate-exit-btn">Calcular Horários de Saída</button>
+                <div id="exit-result" class="result-box hidden"></div>
+            </section>
+
+            <section class="card">
+                <h2>Gerenciar Feriados</h2>
+                <div class="holiday-manager">
+                    <input type="date" id="holiday-date">
+                    <button id="add-holiday-btn">Adicionar Feriado</button>
+                </div>
+                <ul id="holidays-list"></ul>
+            </section>
+            
+            <section class="calendar-container">
+                <div class="calendar-header">
+                    <div>Dia</div>
+                    <div>Horários</div>
+                    <div>Saldo</div>
+                </div>
+                <div id="calendar-grid">
+                    </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="entry-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="close-modal-btn">&times;</button>
+            <h2 id="modal-title">Registrar Horários</h2>
+            <form id="modal-form">
+                <div class="time-inputs">
+                    <div class="input-group"><label>Entrada 1</label><input type="time" id="modal-time1" required></div>
+                    <div class="input-group"><label>Saída 1</label><input type="time" id="modal-time2" required></div>
+                    <div class="input-group"><label>Entrada 2</label><input type="time" id="modal-time3" required></div>
+                    <div class="input-group"><label>Saída 2</label><input type="time" id="modal-time4" required></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" id="save-entry-btn">Salvar</button>
+                    <button type="button" id="delete-entry-btn" class="delete-btn">Apagar Registro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
