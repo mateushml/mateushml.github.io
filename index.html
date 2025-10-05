@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Ponto Mensal</title>
     <link rel="stylesheet" href="style.css">
-
     <meta name="theme-color" content="#005a9c"/>
     <link rel="manifest" href="manifest.json">
 </head>
@@ -14,27 +13,17 @@
         <header>
             <h1>Controle de Ponto Mensal</h1>
         </header>
-
         <main>
             <section class="card controls">
-                <div class="input-group">
-                    <label for="month-select">Mês</label>
-                    <select id="month-select"></select>
-                </div>
-                <div class="input-group">
-                    <label for="year-select">Ano</label>
-                    <input type="number" id="year-select">
-                </div>
+                <div class="input-group"><label for="month-select">Mês</label><select id="month-select"></select></div>
+                <div class="input-group"><label for="year-select">Ano</label><input type="number" id="year-select"></div>
                 <button id="today-btn" title="Ir para o mês atual">Hoje</button>
             </section>
-            
             <section class="card">
                 <h2>Relatório do Mês</h2>
-                <div id="report-grid" class="report-grid">
-                    </div>
+                <div id="report-grid" class="report-grid"></div>
                 <button id="export-csv-btn">Exportar para CSV (Excel)</button>
             </section>
-
             <section class="card">
                 <h2>Calculadora de Saída</h2>
                 <div class="time-inputs">
@@ -45,23 +34,17 @@
                 <button id="calculate-exit-btn">Calcular Horários de Saída</button>
                 <div id="exit-result" class="result-box hidden"></div>
             </section>
-
             <section class="card">
                 <h2>Gerenciar Feriados</h2>
-                <div class="holiday-manager">
-                    <input type="date" id="holiday-date">
-                    <button id="add-holiday-btn">Adicionar Feriado</button>
-                </div>
+                <div class="holiday-manager"><input type="date" id="holiday-date"><button id="add-holiday-btn">Adicionar Feriado</button></div>
                 <ul id="holidays-list"></ul>
             </section>
-            
             <section class="calendar-container">
                 <div class="calendar-header"><div>Dia</div><div>Horários</div><div>Saldo</div></div>
                 <div id="calendar-grid"></div>
             </section>
         </main>
     </div>
-
     <div id="entry-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <button class="close-modal-btn">&times;</button>
@@ -81,6 +64,22 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <script>
+      // Initialize Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyBhuUIy_VSQRzTDUAFUffLwviEiiFlTMwo",
+        authDomain: "meu-controle-de-ponto-8de34.firebaseapp.com",
+        projectId: "meu-controle-de-ponto-8de34",
+        storageBucket: "meu-controle-de-ponto-8de34.firebasestorage.app",
+        messagingSenderId: "969957480983",
+        appId: "1:969957480983:web:92d9aa428d3708c7249a52"
+      };
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    
     <script src="script.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
