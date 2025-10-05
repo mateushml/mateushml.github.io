@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- INICIALIZAÇÃO DO FIREBASE ---
-    // Garante que o firebase está inicializado pelo index.html
     const db = firebase.firestore();
-    let unsubscribeFromData; 
+    let unsubscribeFromData;
 
     // --- ELEMENTOS DO DOM ---
     const monthSelect = document.getElementById('month-select');
@@ -28,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     let currentMonthData = { holidays: [], records: {} };
     let currentDayToEdit = null;
-    
+
     // --- FUNÇÕES AUXILIARES DE TEMPO ---
     const timeToMinutes = (timeStr) => {
         if (!timeStr) return 0;
@@ -49,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const minutes = Math.round(totalMinutes % 60);
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     };
-    
+
     // --- FUNÇÕES DE DADOS (FIREBASE) ---
     const listenToMonthData = () => {
         if (unsubscribeFromData) {
@@ -61,7 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         unsubscribeFromData = db.collection('pontoData').doc(docId).onSnapshot(doc => {
             currentMonthData = doc.exists ? doc.data() : { holidays: [], records: {} };
+            // Garante que as propriedades existam para evitar erros
+            if (!currentMonthData.holidays) currentMonthData.holidays = [];
+            if (!currentMonthData.records) currentMonthData.records = {};
+            
             updateUI(year, month);
+        }, error => {
+            console.error("Erro ao ouvir os dados:", error);
         });
     };
 
@@ -70,7 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const month = parseInt(monthSelect.value);
         const docId = `${year}-${String(month + 1).padStart(2, '0')}`;
         try {
-            await db.collection('pontoData').doc(docId).set(currentMonthData);
+            // Usa set com merge para evitar apagar dados se o objeto local estiver incompleto
+            await db.collection('pontoData').doc(docId).set(currentMonthData, { merge: true });
         } catch (error) {
             console.error("Erro ao salvar dados: ", error);
         }
@@ -99,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let dayTimes = 'Nenhum registro';
             const record = currentMonthData.records ? currentMonthData.records[day] : null;
 
-            if (record && record.times.every(t => t)) {
+            if (record && record.times && record.times.every(t => t)) {
                 const totalWork = (timeToMinutes(record.times[1]) - timeToMinutes(record.times[0])) + (timeToMinutes(record.times[3]) - timeToMinutes(record.times[2]));
                 const balance = totalWork - WORKDAY_MINUTES;
                 dayBalance = formatMinutes(balance);
@@ -124,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentMonthData.records) return stats;
         for (const day in currentMonthData.records) {
             const record = currentMonthData.records[day];
-             if (record && record.times.every(t => t)) {
+             if (record && record.times && record.times.every(t => t)) {
                 const totalWork = (timeToMinutes(record.times[1]) - timeToMinutes(record.times[0])) + (timeToMinutes(record.times[3]) - timeToMinutes(record.times[2]));
                 const balance = totalWork - WORKDAY_MINUTES;
                 stats.totalWorked += totalWork;
@@ -145,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentDayToEdit = day;
         modalTitle.textContent = `Registrar Horários - Dia ${day}`;
         modalForm.reset();
-        if (record) {
+        if (record && record.times) {
             modalForm['modal-time1'].value = record.times[0];
             modalForm['modal-time2'].value = record.times[1];
             modalForm['modal-time3'].value = record.times[2];
@@ -182,31 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const exportToCSV = (year, month) => {
-        const monthData = currentMonthData;
-        let csvContent = "data:text/csv;charset=utf-8,Dia,Status,Entrada 1,Saida 1,Entrada 2,Saida 2,Total Trabalhado,Saldo Dia\n";
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(year, month, day);
-            const dayOfWeek = date.getDay();
-            const dayString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            let row = `${day},`;
-            const record = monthData.records ? monthData.records[day] : null;
-            if (dayOfWeek === 0 || dayOfWeek === 6) { row += "Fim de Semana,,,,,,,\n"; } 
-            else if ((monthData.holidays || []).includes(dayString)) { row += "Feriado,,,,,,,\n"; } 
-            else if (record && record.times.every(t => t)) {
-                const totalWork = (timeToMinutes(record.times[1]) - timeToMinutes(record.times[0])) + (timeToMinutes(record.times[3]) - timeToMinutes(record.times[2]));
-                const balance = totalWork - WORKDAY_MINUTES;
-                row += `Trabalhado,${record.times.join(',')},${formatMinutes(totalWork, false)},${formatMinutes(balance)}\n`;
-            } else { row += "Nao preenchido,,,,,,,\n"; }
-            csvContent += row;
-        }
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `relatorio_ponto_${year}_${monthNames[month]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // ... (código da função exportToCSV sem alteração)
+        const monthData = currentMonthData; let csvContent = "data:text/csv;charset=utf-8,Dia,Status,Entrada 1,Saida 1,Entrada 2,Saida 2,Total Trabalhado,Saldo Dia\n"; const daysInMonth = new Date(year, month + 1, 0).getDate(); for (let day = 1; day <= daysInMonth; day++) { const date = new Date(year, month, day); const dayOfWeek = date.getDay(); const dayString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; let row = `${day},`; const record = monthData.records ? monthData.records[day] : null; if (dayOfWeek === 0 || dayOfWeek === 6) { row += "Fim de Semana,,,,,,,\n"; } else if ((monthData.holidays || []).includes(dayString)) { row += "Feriado,,,,,,,\n"; } else if (record && record.times && record.times.every(t => t)) { const totalWork = (timeToMinutes(record.times[1]) - timeToMinutes(record.times[0])) + (timeToMinutes(record.times[3]) - timeToMinutes(record.times[2])); const balance = totalWork - WORKDAY_MINUTES; row += `Trabalhado,${record.times.join(',')},${formatMinutes(totalWork, false)},${formatMinutes(balance)}\n`; } else { row += "Nao preenchido,,,,,,,\n"; } csvContent += row; } const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", `relatorio_ponto_${year}_${monthNames[month]}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
     };
 
     // --- INICIALIZAÇÃO E EVENT LISTENERS ---
@@ -229,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             yearSelect.value = today.getFullYear();
             monthSelect.value = today.getMonth();
-            listenToMonthData();
+            // A chamada a listenToMonthData já é feita pelos eventos 'change' acima
         });
 
         modalForm.addEventListener('submit', (e) => {
@@ -240,15 +223,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     modalForm['modal-time3'].value, modalForm['modal-time4'].value,
                 ]
             };
+            // *** CORREÇÃO AQUI ***
+            // Modifica o objeto local ANTES de salvar
             currentMonthData.records[currentDayToEdit] = recordData;
-            saveData();
+            saveData(); // Salva o objeto atualizado
             closeModal();
         });
         
         deleteEntryBtn.addEventListener('click', () => {
             if (currentMonthData.records && currentMonthData.records[currentDayToEdit]) {
+                // *** CORREÇÃO AQUI ***
                 delete currentMonthData.records[currentDayToEdit];
-                saveData();
+                saveData(); // Salva o objeto atualizado
                 closeModal();
             }
         });
@@ -259,12 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
         addHolidayBtn.addEventListener('click', () => {
             const holidayValue = holidayDateInput.value;
             if (!holidayValue) return;
+            // *** CORREÇÃO AQUI ***
             if (!currentMonthData.holidays) {
                 currentMonthData.holidays = [];
             }
             if (!currentMonthData.holidays.includes(holidayValue)) {
                 currentMonthData.holidays.push(holidayValue);
-                saveData();
+                saveData(); // Salva o objeto atualizado
             }
             holidayDateInput.value = '';
         });
@@ -274,27 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         calculateExitBtn.addEventListener('click', () => {
-            const t1 = document.getElementById('calc-time1').value;
-            const t2 = document.getElementById('calc-time2').value;
-            const t3 = document.getElementById('calc-time3').value;
-            if (!t1 || !t2 || !t3) {
-                alert('Preencha os 3 primeiros horários de hoje para calcular.');
-                return;
-            }
-            const year = parseInt(yearSelect.value);
-            const month = parseInt(monthSelect.value);
-            const currentBalance = calculateMonthStats(year, month).finalBalance;
-            const morningWork = timeToMinutes(t2) - timeToMinutes(t1);
-            const dailyBalanceNeededMin = -BALANCE_LIMIT_MINUTES - currentBalance;
-            const totalWorkNeededMin = WORKDAY_MINUTES + dailyBalanceNeededMin;
-            const afternoonWorkNeededMin = totalWorkNeededMin - morningWork;
-            const idealExitTimeMin = timeToMinutes(t3) + afternoonWorkNeededMin;
-            const dailyBalanceNeededMax = BALANCE_LIMIT_MINUTES - currentBalance;
-            const totalWorkNeededMax = WORKDAY_MINUTES + dailyBalanceNeededMax;
-            const afternoonWorkNeededMax = totalWorkNeededMax - morningWork;
-            const idealExitTimeMax = timeToMinutes(t3) + afternoonWorkNeededMax;
-            exitResultEl.innerHTML = `<p>Para ficar com saldo de <strong>-01:30</strong>, saia às: <strong>${minutesToTime(idealExitTimeMin)}</strong></p><p>Para ficar com saldo de <strong>+01:30</strong>, saia às: <strong>${minutesToTime(idealExitTimeMax)}</strong></p>`;
-            exitResultEl.classList.remove('hidden');
+            // ... (código da calculadora sem alteração)
+            const t1 = document.getElementById('calc-time1').value; const t2 = document.getElementById('calc-time2').value; const t3 = document.getElementById('calc-time3').value; if (!t1 || !t2 || !t3) { alert('Preencha os 3 primeiros horários de hoje para calcular.'); return; } const year = parseInt(yearSelect.value); const month = parseInt(monthSelect.value); const currentBalance = calculateMonthStats(year, month).finalBalance; const morningWork = timeToMinutes(t2) - timeToMinutes(t1); const dailyBalanceNeededMin = -BALANCE_LIMIT_MINUTES - currentBalance; const totalWorkNeededMin = WORKDAY_MINUTES + dailyBalanceNeededMin; const afternoonWorkNeededMin = totalWorkNeededMin - morningWork; const idealExitTimeMin = timeToMinutes(t3) + afternoonWorkNeededMin; const dailyBalanceNeededMax = BALANCE_LIMIT_MINUTES - currentBalance; const totalWorkNeededMax = WORKDAY_MINUTES + dailyBalanceNeededMax; const afternoonWorkNeededMax = totalWorkNeededMax - morningWork; const idealExitTimeMax = timeToMinutes(t3) + afternoonWorkNeededMax; exitResultEl.innerHTML = `<p>Para ficar com saldo de <strong>-01:30</strong>, saia às: <strong>${minutesToTime(idealExitTimeMin)}</strong></p><p>Para ficar com saldo de <strong>+01:30</strong>, saia às: <strong>${minutesToTime(idealExitTimeMax)}</strong></p>`; exitResultEl.classList.remove('hidden');
         });
     };
 
