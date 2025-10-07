@@ -43,17 +43,24 @@
             </section>
         </main>
     </div>
+
     <div id="entry-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <button class="close-modal-btn">&times;</button>
             <h2 id="modal-title">Registrar Horários</h2>
             <form id="modal-form">
                 <div class="time-inputs">
-                    <div class="input-group"><label>Entrada 1</label><input type="time" id="modal-time1" required></div>
-                    <div class="input-group"><label>Saída 1</label><input type="time" id="modal-time2" required></div>
-                    <div class="input-group"><label>Entrada 2</label><input type="time" id="modal-time3" required></div>
-                    <div class="input-group"><label>Saída 2</label><input type="time" id="modal-time4" required></div>
+                    <div class="input-group"><label>Entrada 1</label><input type="time" id="modal-time1"></div>
+                    <div class="input-group"><label>Saída 1</label><input type="time" id="modal-time2"></div>
+                    <div class="input-group"><label>Entrada 2</label><input type="time" id="modal-time3"></div>
+                    <div class="input-group"><label>Saída 2</label><input type="time" id="modal-time4"></div>
                 </div>
+                
+                <div class="live-balance-display">
+                    <span>Saldo do Dia:</span>
+                    <strong id="modal-live-balance">--:--</strong>
+                </div>
+
                 <div class="modal-actions">
                     <button type="submit" id="save-entry-btn">Salvar</button>
                     <button type="button" id="delete-entry-btn" class="delete-btn">Apagar Registro</button>
@@ -62,8 +69,8 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <script>
       const firebaseConfig = {
