@@ -205,6 +205,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const exportToCSV = (year, month) => {
+        const monthData = currentMonthData;
+        let csvContent = "data:text/csv;charset=utf-8,Dia,Status,Entrada 1,Saida 1,Entrada 2,Saida 2,Total Trabalhado,Saldo Dia\n";
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const dayOfWeek = date.getDay();
+            const dayString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            let row = `${day},`;
+            const record = monthData.records ? monthData.records[day] : null;
+            if (dayOfWeek === 0 || dayOfWeek === 6) { row += "Fim de Semana,,,,,,,\n"; } 
+            else if ((monthData.holidays || []).includes(dayString)) { row += "Feriado,,,,,,,\n"; } 
+            else if (record && record.times && record.times.some(t => t)) {
+                const totalWork = (timeToMinutes(record.times[1]) - timeToMinutes(record.times[0])) + (timeToMinutes(record.times[3]) - timeToMinutes(record.times[2]));
+                const balance = totalWork - WORKDAY_MINUTES;
+                row += `Trabalhado,${record.times.join(',')},${formatMinutes(totalWork, false)},${formatMinutes(balance)}\n`;
+            } else { row += "Nao preenchido,,,,,,,\n"; }
+            csvContent += row;
+        }
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `relatorio_ponto_${year}_${monthNames[month]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     // --- INICIALIZAÇÃO E EVENT LISTENERS ---
     const init = () => {
         monthNames.forEach((name, index) => {
@@ -276,7 +304,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             docRef.update({
                 holidays: firebase.firestore.FieldValue.arrayUnion(holidayValue)
-            }).catch(error => console.error("Erro ao adicionar feriado:", error));
+            }).catch(error => { // Adicionado .catch para criar o documento se não existir
+                if (error.code === 'not-found') {
+                    docRef.set({ holidays: [holidayValue] }, { merge: true });
+                } else {
+                    console.error("Erro ao adicionar feriado:", error);
+                }
+            });
 
             holidayDateInput.value = '';
         });
@@ -300,47 +334,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const month = parseInt(monthSelect.value);
             const currentBalance = calculateMonthStats(year, month).finalBalance;
             const morningWork = timeToMinutes(t2) - timeToMinutes(t1);
+
+            // Cálculo para saldo ZERADO
+            const dailyBalanceNeededZero = 0 - currentBalance;
+            const totalWorkNeededZero = WORKDAY_MINUTES + dailyBalanceNeededZero;
+            const afternoonWorkNeededZero = totalWorkNeededZero - morningWork;
+            const idealExitTimeZero = timeToMinutes(t3) + afternoonWorkNeededZero;
+
+            // Cálculo para o limite MÍNIMO (-1h30)
             const dailyBalanceNeededMin = -BALANCE_LIMIT_MINUTES - currentBalance;
             const totalWorkNeededMin = WORKDAY_MINUTES + dailyBalanceNeededMin;
             const afternoonWorkNeededMin = totalWorkNeededMin - morningWork;
             const idealExitTimeMin = timeToMinutes(t3) + afternoonWorkNeededMin;
+
+            // Cálculo para o limite MÁXIMO (+1h30)
             const dailyBalanceNeededMax = BALANCE_LIMIT_MINUTES - currentBalance;
             const totalWorkNeededMax = WORKDAY_MINUTES + dailyBalanceNeededMax;
             const afternoonWorkNeededMax = totalWorkNeededMax - morningWork;
             const idealExitTimeMax = timeToMinutes(t3) + afternoonWorkNeededMax;
-            exitResultEl.innerHTML = `<p>Para ficar com saldo de <strong>-01:30</strong>, saia às: <strong>${minutesToTime(idealExitTimeMin)}</strong></p><p>Para ficar com saldo de <strong>+01:30</strong>, saia às: <strong>${minutesToTime(idealExitTimeMax)}</strong></p>`;
+
+            // *** ATUALIZAÇÃO AQUI para incluir o novo horário ***
+            exitResultEl.innerHTML = `
+                <p>Para ficar com saldo de <strong>-01:30</strong>, saia às: <strong>${minutesToTime(idealExitTimeMin)}</strong></p>
+                <p>Para ficar com saldo <strong>ZERADO</strong>, saia às: <strong>${minutesToTime(idealExitTimeZero)}</strong></p>
+                <p>Para ficar com saldo de <strong>+01:30</strong>, saia às: <strong>${minutesToTime(idealExitTimeMax)}</strong></p>
+            `;
             exitResultEl.classList.remove('hidden');
         });
     };
     
-    // As funções abaixo não precisam estar dentro do init, melhor fora
-    const exportToCSV = (year, month) => {
-        const monthData = currentMonthData;
-        let csvContent = "data:text/csv;charset=utf-8,Dia,Status,Entrada 1,Saida 1,Entrada 2,Saida 2,Total Trabalhado,Saldo Dia\n";
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(year, month, day);
-            const dayOfWeek = date.getDay();
-            const dayString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            let row = `${day},`;
-            const record = monthData.records ? monthData.records[day] : null;
-            if (dayOfWeek === 0 || dayOfWeek === 6) { row += "Fim de Semana,,,,,,,\n"; } 
-            else if ((monthData.holidays || []).includes(dayString)) { row += "Feriado,,,,,,,\n"; } 
-            else if (record && record.times && record.times.some(t => t)) {
-                const totalWork = (timeToMinutes(record.times[1]) - timeToMinutes(record.times[0])) + (timeToMinutes(record.times[3]) - timeToMinutes(record.times[2]));
-                const balance = totalWork - WORKDAY_MINUTES;
-                row += `Trabalhado,${record.times.join(',')},${formatMinutes(totalWork, false)},${formatMinutes(balance)}\n`;
-            } else { row += "Nao preenchido,,,,,,,\n"; }
-            csvContent += row;
-        }
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `relatorio_ponto_${year}_${monthNames[month]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
     init();
 });
