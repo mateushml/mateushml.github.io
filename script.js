@@ -138,10 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHolidays(year, month);
     };
     
-    // ATUALIZADA para incluir cálculo de médias
+    // ATUALIZADA para incluir todas as médias
     const calculateMonthStats = (year, month) => {
-        const stats = { totalWorked: 0, finalBalance: 0, totalPositive: 0, totalNegative: 0, avgEntry1: NaN, avgExit2: NaN };
+        const stats = { totalWorked: 0, finalBalance: 0, totalPositive: 0, totalNegative: 0, avgEntry1: NaN, avgExit1: NaN, avgEntry2: NaN, avgExit2: NaN };
         const entry1Minutes = [];
+        const exit1Minutes = [];
+        const entry2Minutes = [];
         const exit2Minutes = [];
 
         if (!currentMonthData.records) return stats;
@@ -151,6 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
              if (record && record.times) {
                 // Adiciona às listas de média
                 if (record.times[0]) entry1Minutes.push(timeToMinutes(record.times[0]));
+                if (record.times[1]) exit1Minutes.push(timeToMinutes(record.times[1]));
+                if (record.times[2]) entry2Minutes.push(timeToMinutes(record.times[2]));
                 if (record.times[3]) exit2Minutes.push(timeToMinutes(record.times[3]));
 
                 if (record.times.some(t => t)) {
@@ -166,18 +170,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Calcula a média
-        if (entry1Minutes.length > 0) {
-            stats.avgEntry1 = entry1Minutes.reduce((sum, val) => sum + val, 0) / entry1Minutes.length;
-        }
-        if (exit2Minutes.length > 0) {
-            stats.avgExit2 = exit2Minutes.reduce((sum, val) => sum + val, 0) / exit2Minutes.length;
-        }
+        // Calcula as médias
+        const calculateAverage = (arr) => arr.length > 0 ? arr.reduce((sum, val) => sum + val, 0) / arr.length : NaN;
+        stats.avgEntry1 = calculateAverage(entry1Minutes);
+        stats.avgExit1 = calculateAverage(exit1Minutes);
+        stats.avgEntry2 = calculateAverage(entry2Minutes);
+        stats.avgExit2 = calculateAverage(exit2Minutes);
 
         return stats;
     };
     
-    // ATUALIZADA para exibir as médias
+    // ATUALIZADA para exibir todas as médias
     const generateReport = (year, month) => {
         const monthStats = calculateMonthStats(year, month);
         reportGrid.innerHTML = `
@@ -186,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="report-item"><span>Total Positivo</span><strong style="color: var(--success-color)">${formatMinutes(monthStats.totalPositive)}</strong></div>
             <div class="report-item"><span>Total Negativo</span><strong style="color: var(--danger-color)">${formatMinutes(monthStats.totalNegative)}</strong></div>
             <div class="report-item"><span>Média Entrada 1</span><strong>${minutesToTime(monthStats.avgEntry1)}</strong></div>
+            <div class="report-item"><span>Média Saída 1</span><strong>${minutesToTime(monthStats.avgExit1)}</strong></div>
+            <div class="report-item"><span>Média Entrada 2</span><strong>${minutesToTime(monthStats.avgEntry2)}</strong></div>
             <div class="report-item"><span>Média Saída 2</span><strong>${minutesToTime(monthStats.avgExit2)}</strong></div>
         `;
     };
@@ -311,9 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     
-    // As funções abaixo não precisam estar dentro do init, melhor fora
     const exportToCSV = (year, month) => {
-        // ... (código sem alteração, apenas movido para o escopo correto)
         const monthData = currentMonthData; let csvContent = "data:text/csv;charset=utf-8,Dia,Status,Entrada 1,Saida 1,Entrada 2,Saida 2,Total Trabalhado,Saldo Dia\n"; const daysInMonth = new Date(year, month + 1, 0).getDate(); for (let day = 1; day <= daysInMonth; day++) { const date = new Date(year, month, day); const dayOfWeek = date.getDay(); const dayString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; let row = `${day},`; const record = monthData.records ? monthData.records[day] : null; if (dayOfWeek === 0 || dayOfWeek === 6) { row += "Fim de Semana,,,,,,,\n"; } else if ((monthData.holidays || []).includes(dayString)) { row += "Feriado,,,,,,,\n"; } else if (record && record.times && record.times.some(t => t)) { const totalWork = (timeToMinutes(record.times[1]) - timeToMinutes(record.times[0])) + (timeToMinutes(record.times[3]) - timeToMinutes(record.times[2])); const balance = totalWork - WORKDAY_MINUTES; row += `Trabalhado,${record.times.join(',')},${formatMinutes(totalWork, false)},${formatMinutes(balance)}\n`; } else { row += "Nao preenchido,,,,,,,\n"; } csvContent += row; } const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", `relatorio_ponto_${year}_${monthNames[month]}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
     };
 
